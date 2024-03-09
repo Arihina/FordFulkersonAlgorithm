@@ -8,8 +8,68 @@ void main()
 
 	cout << endl;
 
-	auto extendedMatrix = solveMatrix(matrix);
-	printMatrix(extendedMatrix);
+	auto matrixExtend = extendedMatrix(matrix);
+	printMatrix(matrixExtend);
+
+	int source = 0, drain = matrix.size() - 1;
+	tuple<int, int, int> startNode = make_tuple(INT_MAX, -1, source);
+	vector<int> paths;
+
+	int j = source;
+	while (j != -1)
+	{
+		int startPoint = source;
+		vector<tuple<int, int, int>> pathBranches = { startNode };
+		set<int> visited;
+
+		while (startPoint != drain)
+		{
+			j = getMaxNode(startPoint, matrixExtend, visited);
+			if (j == -1)
+			{
+				if (startPoint == source)
+				{
+					break;
+				}
+				else
+				{
+					startPoint = get<2>(pathBranches[pathBranches.size() - 1]);
+					pathBranches.pop_back();
+					continue;
+				}
+			}
+
+			int flow;
+			if (get<2>(matrixExtend[startPoint][j]) == 1)
+			{
+				flow = get<0>(matrixExtend[startPoint][j]);
+			}
+			else
+			{
+				flow = get<1>(matrixExtend[startPoint][j]);
+			}
+
+			pathBranches.push_back(make_tuple(flow, j, startPoint));
+			visited.insert(j);
+
+			if (j == drain)
+			{
+				paths.push_back(getMaxFlow(pathBranches));
+				updateNodesWeights(matrixExtend, pathBranches, paths[paths.size() - 1]);
+				break;
+			}
+
+			startPoint = j;
+		}
+	}
+
+	int sum = 0;
+	for (int i = 0; i < paths.size(); i++)
+	{
+		// cout << paths[i] << " ";
+		sum += paths[i];
+	}
+	cout << endl << sum;
 }
 
 
@@ -24,7 +84,7 @@ void printMatrix(inputMatrix& matrix) {
 	}
 }
 
-void printMatrix(culcMatrix& matrix) {
+void printMatrix(extendMatrix& matrix) {
 	for (int i = 0; i < matrix.size(); i++)
 	{
 		for (int j = 0; j < matrix[i].size(); j++)
@@ -78,9 +138,9 @@ inputMatrix fillRandomMatrix(int size) {
 	return matrix;
 }
 
-culcMatrix solveMatrix(inputMatrix& matrix)
+extendMatrix extendedMatrix(inputMatrix& matrix)
 {
-	culcMatrix result;
+	extendMatrix result;
 
 	for (int i = 0; i < matrix.size(); i++)
 	{
@@ -106,4 +166,81 @@ culcMatrix solveMatrix(inputMatrix& matrix)
 	}
 
 	return result;
+}
+
+int getMaxNode(int index, extendMatrix& matrix, set<int>& visited)
+{
+	int min = 0, node = -1;
+	for (int i = 0; i < matrix[index].size(); i++)
+	{
+		if (visited.count(i))
+		{
+			continue;
+		}
+		if (get<2>(matrix[index][i]) == 1)
+		{
+			if (min < get<0>(matrix[index][i]))
+			{
+				min = get<0>(matrix[index][i]);
+				node = i;
+			}
+		}
+		else
+		{
+			if (min < get<1>(matrix[index][i]))
+			{
+				min = get<1>(matrix[index][i]);
+				node = i;
+			}
+		}
+	}
+
+	return node;
+}
+
+int getMaxFlow(vector<tuple<int, int, int>>& row)
+{
+	vector<int> flows;
+	for (int i = 0; i < row.size(); i++)
+	{
+		flows.push_back(get<0>(row[i]));
+	}
+
+	return *min_element(flows.begin(), flows.end());
+}
+
+void updateNodesWeights(extendMatrix& matrix, vector<tuple<int, int, int>>& row, int num)
+{
+	for (auto elem : row)
+	{
+		if (get<1>(elem) == -1)
+		{
+			continue;
+		}
+
+		if (get<2>(elem) == -1)
+		{
+			int direction = get<2>(matrix[matrix.size() - 1][get<1>(elem)]);
+
+			matrix[get<1>(elem)][matrix.size() - 1] = make_tuple(get<0>(matrix[get<1>(elem)][matrix.size() - 1]) - (num * direction),
+				get<1>(matrix[get<1>(elem)][matrix.size() - 1]) + (num * direction),
+				get<2>(matrix[get<1>(elem)][matrix.size() - 1]));
+
+			matrix[matrix.size() - 1][get<1>(elem)] = make_tuple(get<0>(matrix[get<2>(elem)][matrix.size() - 1]) - (num * direction),
+				get<1>(matrix[get<2>(elem)][matrix.size() - 1]) + (num * direction),
+				get<2>(matrix[get<2>(elem)][matrix.size() - 1]));
+		}
+		else
+		{
+			int direction = get<2>(matrix[get<2>(elem)][get<1>(elem)]);
+
+			matrix[get<1>(elem)][get<2>(elem)] = make_tuple(get<0>(matrix[get<1>(elem)][get<2>(elem)]) - (num * direction),
+				get<1>(matrix[get<1>(elem)][get<2>(elem)]) + (num * direction),
+				get<2>(matrix[get<1>(elem)][get<2>(elem)]));
+
+			matrix[get<2>(elem)][get<1>(elem)] = make_tuple(get<0>(matrix[get<2>(elem)][get<2>(elem)]) - (num * direction),
+				get<1>(matrix[get<2>(elem)][get<2>(elem)]) + (num * direction),
+				get<2>(matrix[get<2>(elem)][get<2>(elem)]));
+		}
+	}
 }
