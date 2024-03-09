@@ -1,17 +1,17 @@
-#include <iostream>
-#include <vector>
-#include <tuple>
-#include <fstream>
+#include "prototypes.h"
 
-using namespace std;
-
-typedef vector<vector<int>> inputMatrix;
-typedef vector<vector<tuple<int, int, int>>> culcMatrix;
 
 void main()
 {
-	
+	auto matrix = readMatrix("matrix.txt", 5);
+	printMatrix(matrix);
+
+	cout << endl;
+
+	auto extendedMatrix = solveMatrix(matrix);
+	printMatrix(extendedMatrix);
 }
+
 
 void printMatrix(inputMatrix& matrix) {
 	for (int i = 0; i < matrix.size(); i++)
@@ -24,7 +24,17 @@ void printMatrix(inputMatrix& matrix) {
 	}
 }
 
-// Function for read matrix from .txt file
+void printMatrix(culcMatrix& matrix) {
+	for (int i = 0; i < matrix.size(); i++)
+	{
+		for (int j = 0; j < matrix[i].size(); j++)
+		{
+			cout << get<0>(matrix[i][j]) << " " << get<1>(matrix[i][j]) << " " << get<2>(matrix[i][j]) << "   ";
+		}
+		cout << endl;
+	}
+}
+
 inputMatrix readMatrix(string fileName, int size) {
 	if (fileName.substr(fileName.find_last_of(".") + 1) != "txt")
 	{
@@ -60,10 +70,40 @@ inputMatrix fillRandomMatrix(int size) {
 		vector<int> row(size, 0);
 		for (int j = 0; j < size; j++)
 		{
-			row[j] = rand() % 2;
+			row[j] = rand() % 10;
 		}
 		matrix[i] = row;;
 	}
 
 	return matrix;
+}
+
+culcMatrix solveMatrix(inputMatrix& matrix)
+{
+	culcMatrix result;
+
+	for (int i = 0; i < matrix.size(); i++)
+	{
+		vector<tuple<int, int, int>> row;
+		for (int j = 0; j < matrix[i].size(); j++)
+		{
+			row.push_back(make_tuple(matrix[i][j], 0, 1));
+		}
+		result.push_back(row);
+	}
+
+
+	for (int i = 0; i < matrix.size(); i++)
+	{
+		for (int j = i; j < matrix[i].size(); j++)
+		{
+			if (matrix[i][j] > 0)
+			{
+				result[i][j] = make_tuple(matrix[i][j], 0, 1);
+				result[j][i] = make_tuple(matrix[i][j], 0, -1);
+			}
+		}
+	}
+
+	return result;
 }
