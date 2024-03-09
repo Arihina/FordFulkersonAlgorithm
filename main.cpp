@@ -4,12 +4,7 @@
 void main()
 {
 	auto matrix = readMatrix("matrix.txt", 5);
-	printMatrix(matrix);
-
-	cout << endl;
-
 	auto matrixExtend = extendedMatrix(matrix);
-	printMatrix(matrixExtend);
 
 	int source = 0, drain = matrix.size() - 1;
 	tuple<int, int, int> startNode = make_tuple(INT_MAX, -1, source);
@@ -20,7 +15,7 @@ void main()
 	{
 		int startPoint = source;
 		vector<tuple<int, int, int>> pathBranches = { startNode };
-		set<int> visited;
+		set<int> visited = { source };
 
 		while (startPoint != drain)
 		{
@@ -66,10 +61,9 @@ void main()
 	int sum = 0;
 	for (int i = 0; i < paths.size(); i++)
 	{
-		// cout << paths[i] << " ";
 		sum += paths[i];
 	}
-	cout << endl << sum;
+	cout << "Max flow" << sum;
 }
 
 
@@ -218,29 +212,14 @@ void updateNodesWeights(extendMatrix& matrix, vector<tuple<int, int, int>>& row,
 			continue;
 		}
 
-		if (get<2>(elem) == -1)
-		{
-			int direction = get<2>(matrix[matrix.size() - 1][get<1>(elem)]);
+		int direction = get<2>(matrix[get<2>(elem)][get<1>(elem)]);
 
-			matrix[get<1>(elem)][matrix.size() - 1] = make_tuple(get<0>(matrix[get<1>(elem)][matrix.size() - 1]) - (num * direction),
-				get<1>(matrix[get<1>(elem)][matrix.size() - 1]) + (num * direction),
-				get<2>(matrix[get<1>(elem)][matrix.size() - 1]));
+		matrix[get<1>(elem)][get<2>(elem)] = make_tuple(get<0>(matrix[get<1>(elem)][get<2>(elem)]) - (num * direction),
+			get<1>(matrix[get<1>(elem)][get<2>(elem)]) + (num * direction),
+			get<2>(matrix[get<1>(elem)][get<2>(elem)]));
 
-			matrix[matrix.size() - 1][get<1>(elem)] = make_tuple(get<0>(matrix[get<2>(elem)][matrix.size() - 1]) - (num * direction),
-				get<1>(matrix[get<2>(elem)][matrix.size() - 1]) + (num * direction),
-				get<2>(matrix[get<2>(elem)][matrix.size() - 1]));
-		}
-		else
-		{
-			int direction = get<2>(matrix[get<2>(elem)][get<1>(elem)]);
-
-			matrix[get<1>(elem)][get<2>(elem)] = make_tuple(get<0>(matrix[get<1>(elem)][get<2>(elem)]) - (num * direction),
-				get<1>(matrix[get<1>(elem)][get<2>(elem)]) + (num * direction),
-				get<2>(matrix[get<1>(elem)][get<2>(elem)]));
-
-			matrix[get<2>(elem)][get<1>(elem)] = make_tuple(get<0>(matrix[get<2>(elem)][get<2>(elem)]) - (num * direction),
-				get<1>(matrix[get<2>(elem)][get<2>(elem)]) + (num * direction),
-				get<2>(matrix[get<2>(elem)][get<2>(elem)]));
-		}
+		matrix[get<2>(elem)][get<1>(elem)] = make_tuple(get<0>(matrix[get<2>(elem)][get<1>(elem)]) - (num * direction),
+			get<1>(matrix[get<2>(elem)][get<1>(elem)]) + (num * direction),
+			get<2>(matrix[get<2>(elem)][get<1>(elem)]));
 	}
 }
