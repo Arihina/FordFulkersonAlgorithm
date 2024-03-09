@@ -3,67 +3,47 @@
 
 void main()
 {
-	auto matrix = readMatrix("matrix.txt", 5);
-	auto matrixExtend = extendedMatrix(matrix);
+	cout << "Enter size of input matrix: ";
+	int size;
+	cin >> size;
 
-	int source = 0, drain = matrix.size() - 1;
-	tuple<int, int, int> startNode = make_tuple(INT_MAX, -1, source);
-	vector<int> paths;
+	cout << "1 - Read matrix from file " << endl;
+	cout << "2 - Generate random matrix " << endl;
+	cout << "1/2: ";
+	char answer;
+	cin >> answer;
 
-	int j = source;
-	while (j != -1)
+	inputMatrix matrix;
+	if (answer == '1')
 	{
-		int startPoint = source;
-		vector<tuple<int, int, int>> pathBranches = { startNode };
-		set<int> visited = { source };
-
-		while (startPoint != drain)
-		{
-			j = getMaxNode(startPoint, matrixExtend, visited);
-			if (j == -1)
-			{
-				if (startPoint == source)
-				{
-					break;
-				}
-				else
-				{
-					startPoint = get<2>(pathBranches[pathBranches.size() - 1]);
-					pathBranches.pop_back();
-					continue;
-				}
-			}
-
-			int flow;
-			if (get<2>(matrixExtend[startPoint][j]) == 1)
-			{
-				flow = get<0>(matrixExtend[startPoint][j]);
-			}
-			else
-			{
-				flow = get<1>(matrixExtend[startPoint][j]);
-			}
-
-			pathBranches.push_back(make_tuple(flow, j, startPoint));
-			visited.insert(j);
-
-			if (j == drain)
-			{
-				paths.push_back(getMaxFlow(pathBranches));
-				updateNodesWeights(matrixExtend, pathBranches, paths[paths.size() - 1]);
-				break;
-			}
-
-			startPoint = j;
-		}
+		cout << "Enter file name for input matrix: ";
+		string file;
+		cin >> file;
+		matrix = readMatrix(file, size);
 	}
+	else if (answer == '2')
+	{
+		matrix = fillRandomMatrix(size);
+		cout << "Random matrix" << endl;
+		printMatrix(matrix);
+		cout << endl;
+	}
+	else
+	{
+		cout << "Error input";
+		exit(1);
+	}
+
+	extendMatrix matrixExtend = extendedMatrix(matrix);
+
+	vector<int> paths = solve(matrixExtend, matrix);
 
 	int sum = 0;
 	for (int i = 0; i < paths.size(); i++)
 	{
 		sum += paths[i];
 	}
-	cout << "Max flow" << sum;
+	cout << "Max flow = " << sum;
 }
 
 
@@ -222,4 +202,61 @@ void updateNodesWeights(extendMatrix& matrix, vector<tuple<int, int, int>>& row,
 			get<1>(matrix[get<2>(elem)][get<1>(elem)]) + (num * direction),
 			get<2>(matrix[get<2>(elem)][get<1>(elem)]));
 	}
+}
+
+vector<int> solve(extendMatrix& matrixExtend, inputMatrix& matrix)
+{
+	vector<int> paths;
+	int source = 0, drain = matrix.size() - 1;
+	tuple<int, int, int> startNode = make_tuple(INT_MAX, -1, source);
+
+	int j = source;
+	while (j != -1)
+	{
+		int startPoint = source;
+		vector<tuple<int, int, int>> pathBranches = { startNode };
+		set<int> visited = { source };
+
+		while (startPoint != drain)
+		{
+			j = getMaxNode(startPoint, matrixExtend, visited);
+			if (j == -1)
+			{
+				if (startPoint == source)
+				{
+					break;
+				}
+				else
+				{
+					startPoint = get<2>(pathBranches[pathBranches.size() - 1]);
+					pathBranches.pop_back();
+					continue;
+				}
+			}
+
+			int flow;
+			if (get<2>(matrixExtend[startPoint][j]) == 1)
+			{
+				flow = get<0>(matrixExtend[startPoint][j]);
+			}
+			else
+			{
+				flow = get<1>(matrixExtend[startPoint][j]);
+			}
+
+			pathBranches.push_back(make_tuple(flow, j, startPoint));
+			visited.insert(j);
+
+			if (j == drain)
+			{
+				paths.push_back(getMaxFlow(pathBranches));
+				updateNodesWeights(matrixExtend, pathBranches, paths[paths.size() - 1]);
+				break;
+			}
+
+			startPoint = j;
+		}
+	}
+
+	return paths;
 }

@@ -5,6 +5,7 @@
 #include <tuple>
 #include <fstream>
 #include <set>
+#include <string>
 
 using namespace std;
 
@@ -27,3 +28,5 @@ int getMaxNode(int, extendMatrix&, set<int>&);
 int getMaxFlow(vector<tuple<int, int, int>>&);
 // Function for updating weights of nodes
 void updateNodesWeights(extendMatrix&, vector<tuple<int, int, int>>&, int);
+
+vector<int> solve(extendMatrix&, inputMatrix&);
