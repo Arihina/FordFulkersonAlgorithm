@@ -44,6 +44,7 @@ void main()
 		sum += paths[i];
 	}
 	cout << "Max flow = " << sum;
+	cin >> answer;
 }
 
 
